@@ -15,6 +15,7 @@ public class Lexer {
     int linha = 1;
     int colunaAnterior = 1;
     int coluna = 1;
+    boolean eof = false;
 
     public Lexer(String nomeArquivo) {
         InputStream inputStream = this.getClass().getResourceAsStream(nomeArquivo);
@@ -32,8 +33,10 @@ public class Lexer {
 
     public void lerCaractere() throws IOException {
         int codCh = reader.read();
-        if (codCh == -1)
+        if (codCh == -1) {
+            eof = true;
             return;
+        }
 
         ch = (char) codCh;
         if (ch == '\n') {
@@ -83,7 +86,17 @@ public class Lexer {
         return operador.toString();
     }
 
+    public String lerComentario() throws IOException {
+        StringBuilder comentario = new StringBuilder();
+        while (ch != '}' && !eof) {
+            colunaAnterior = coluna;
+            comentario.append(ch);
+            lerCaractere();
+        }
 
+        comentario.append(ch);
+        return comentario.toString();
+    }
 
     public Token buscarToken() throws IOException {
         StringBuilder lexema = new StringBuilder();
@@ -94,18 +107,19 @@ public class Lexer {
                 String operador = lerOperador();
                 int col = coluna - operador.length();
                 return switch (operador) {
-                    case ":=" -> new Token(Tipo.SATRIBUICAO, ":=", linha, col);
-                    case ":" -> new Token(Tipo.STIPO, ":", linha, col);
-                    case "+" -> new Token(Tipo.SMAIS, "+", linha, col);
-                    case "-" -> new Token(Tipo.SMENOS, "-", linha, col);
-                    case "*" -> new Token(Tipo.SMULTIPLICACAO, "*", linha, col);
-                    case "/" -> new Token(Tipo.SDIVISAO, "/", linha, col);
-                    case ";" -> new Token(Tipo.SPONTO_E_VIRGULA, ";", linha, col);
-                    case "." -> new Token(Tipo.SPONTO, ".", linha, col);
-                    case "," -> new Token(Tipo.SVIRGULA, ",", linha, col);
-                    case "(" -> new Token(Tipo.SABRE_PARENTESIS, "(", linha, col);
-                    case ")" -> new Token(Tipo.SFECHA_PARENTESIS, ")", linha, col);
-                    default -> new Token(Tipo.SERRO, lexema.toString(), linha, col);
+                    case ":=" -> new Token(Tipo.SATRIBUICAO, operador, linha, col);
+                    case ":" -> new Token(Tipo.STIPO, operador, linha, col);
+                    case "+" -> new Token(Tipo.SMAIS, operador, linha, col);
+                    case "-" -> new Token(Tipo.SMENOS, operador, linha, col);
+                    case "*" -> new Token(Tipo.SMULTIPLICACAO, operador, linha, col);
+                    case "/" -> new Token(Tipo.SDIVISAO, operador, linha, col);
+                    case ";" -> new Token(Tipo.SPONTO_E_VIRGULA, operador, linha, col);
+                    case "." -> new Token(Tipo.SPONTO, operador, linha, col);
+                    case "," -> new Token(Tipo.SVIRGULA, operador, linha, col);
+                    case "(" -> new Token(Tipo.SABRE_PARENTESIS, operador, linha, col);
+                    case ")" -> new Token(Tipo.SFECHA_PARENTESIS, operador, linha, col);
+                    case "{" -> new Token(Tipo.SCOMENTARIO, lerComentario(), linha, col);
+                    default -> new Token(Tipo.SERRO, operador, linha, col);
                 };
             } else if (Character.isDigit(ch)) {
                 String numero = lerNumero();
@@ -142,7 +156,7 @@ public class Lexer {
             ts.adicionarToken(i, t);
             i++;
         }
-        while (t.getTipo() != Tipo.SERRO && t.getTipo() != Tipo.SFIM);
+        while (t.getTipo() != Tipo.SERRO && t.getTipo() != Tipo.SFIM && !eof);
 
         return ts.listarTokens();
     }
