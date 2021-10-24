@@ -1,0 +1,13 @@
+programa teste_correto;
+
+var
+a, b, c: inteiro;
+
+{ Comentário teste }
+
+inicio
+a := 5;
+b := 10;
+c := (a + b);
+    escreva c;
+fim.

@@ -1,0 +1,12 @@
+programa teste_incorreto;
+
+var
+a, b: inteiro;
+x: inteiro;
+
+inicio
+a := 7;
+b := 5;
+}x := (a - b);
+    escreva x;
+fim.

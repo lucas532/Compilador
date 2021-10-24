@@ -11,9 +11,9 @@ public abstract class Parser {
     Lexer lexer;
     Token t;
 
-    public Parser(String nomeArquivo) {
+    protected Parser() {
         ts = new TabelaSimbolos();
-        lexer = new Lexer(nomeArquivo);
+        lexer = new Lexer("/ProgramaTeste.txt");
     }
 
     public void buscaToken() throws IOException {

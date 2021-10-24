@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.Objects;
 
 public class Lexer {
-    PushbackReader reader;
+    final PushbackReader reader;
     char ch;
     int linha = 1;
     int colunaAnterior = 1;
@@ -102,48 +102,48 @@ public class Lexer {
         StringBuilder lexema = new StringBuilder();
         lerCaractere();
 
-        while (ch != '@') {
-            if (!Character.isLetterOrDigit(ch) && !Character.isWhitespace(ch)) {
-                String operador = lerOperador();
-                int col = coluna - operador.length();
-                return switch (operador) {
-                    case ":=" -> new Token(Tipo.SATRIBUICAO, operador, linha, col);
-                    case ":" -> new Token(Tipo.STIPO, operador, linha, col);
-                    case "+" -> new Token(Tipo.SMAIS, operador, linha, col);
-                    case "-" -> new Token(Tipo.SMENOS, operador, linha, col);
-                    case "*" -> new Token(Tipo.SMULTIPLICACAO, operador, linha, col);
-                    case "/" -> new Token(Tipo.SDIVISAO, operador, linha, col);
-                    case ";" -> new Token(Tipo.SPONTO_E_VIRGULA, operador, linha, col);
-                    case "." -> new Token(Tipo.SPONTO, operador, linha, col);
-                    case "," -> new Token(Tipo.SVIRGULA, operador, linha, col);
-                    case "(" -> new Token(Tipo.SABRE_PARENTESIS, operador, linha, col);
-                    case ")" -> new Token(Tipo.SFECHA_PARENTESIS, operador, linha, col);
-                    case "{" -> new Token(Tipo.SCOMENTARIO, lerComentario(), linha, col);
-                    default -> new Token(Tipo.SERRO, operador, linha, col);
-                };
-            } else if (Character.isDigit(ch)) {
-                String numero = lerNumero();
-                int col = coluna - numero.length();
-                return new Token(Tipo.SNUMERO, numero, linha, col);
-            } else if (Character.isLetter(ch)) {
-                String palavra = lerPalavra();
-                int col = coluna - palavra.length();
-                return switch (palavra) {
-                    case "programa" -> new Token(Tipo.SPROGRAMA, palavra, linha, col);
-                    case "inteiro" -> new Token(Tipo.SINTEIRO, palavra, linha, col);
-                    case "inicio" -> new Token(Tipo.SINICIO, palavra, linha, col);
-                    case "fim" -> new Token(Tipo.SFIM, palavra, linha, col);
-                    case "var" -> new Token(Tipo.SVAR, palavra, linha, col);
-                    case "escreva" -> new Token(Tipo.SESCREVA, palavra, linha, col);
-                    default -> new Token(Tipo.SIDENTIFICADOR, palavra, linha, col);
-                };
-            }
-
+        while (Character.isWhitespace(ch)) {
             lerCaractere();
         }
 
-        lexema.append(ch);
-        return new Token(Tipo.SERRO, lexema.toString(), linha, coluna);
+        if (!Character.isLetterOrDigit(ch) && !Character.isWhitespace(ch)) {
+            String operador = lerOperador();
+            int col = coluna - operador.length();
+            return switch (operador) {
+                case ":=" -> new Token(Tipo.SATRIBUICAO, operador, linha, col);
+                case ":" -> new Token(Tipo.STIPO, operador, linha, col);
+                case "+" -> new Token(Tipo.SMAIS, operador, linha, col);
+                case "-" -> new Token(Tipo.SMENOS, operador, linha, col);
+                case "*" -> new Token(Tipo.SMULTIPLICACAO, operador, linha, col);
+                case "/" -> new Token(Tipo.SDIVISAO, operador, linha, col);
+                case ";" -> new Token(Tipo.SPONTO_E_VIRGULA, operador, linha, col);
+                case "." -> new Token(Tipo.SPONTO, operador, linha, col);
+                case "," -> new Token(Tipo.SVIRGULA, operador, linha, col);
+                case "(" -> new Token(Tipo.SABRE_PARENTESIS, operador, linha, col);
+                case ")" -> new Token(Tipo.SFECHA_PARENTESIS, operador, linha, col);
+                case "{" -> new Token(Tipo.SCOMENTARIO, lerComentario(), linha, col);
+                default -> new Token(Tipo.SERRO, operador, linha, col);
+            };
+        } else if (Character.isDigit(ch)) {
+            String numero = lerNumero();
+            int col = coluna - numero.length();
+            return new Token(Tipo.SNUMERO, numero, linha, col);
+        } else if (Character.isLetter(ch)) {
+            String palavra = lerPalavra();
+            int col = coluna - palavra.length();
+            return switch (palavra) {
+                case "programa" -> new Token(Tipo.SPROGRAMA, palavra, linha, col);
+                case "inteiro" -> new Token(Tipo.SINTEIRO, palavra, linha, col);
+                case "inicio" -> new Token(Tipo.SINICIO, palavra, linha, col);
+                case "fim" -> new Token(Tipo.SFIM, palavra, linha, col);
+                case "var" -> new Token(Tipo.SVAR, palavra, linha, col);
+                case "escreva" -> new Token(Tipo.SESCREVA, palavra, linha, col);
+                default -> new Token(Tipo.SIDENTIFICADOR, palavra, linha, col);
+            };
+        } else {
+            lexema.append(ch);
+            return new Token(Tipo.SERRO, lexema.toString(), linha, coluna);
+        }
     }
 
     public Map<Integer, Token> lex() throws IOException {
