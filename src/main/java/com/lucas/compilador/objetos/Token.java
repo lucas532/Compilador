@@ -10,6 +10,6 @@ import lombok.ToString;
 public class Token {
     Tipo tipo;
     String lexema;
-    int linha;
-    int coluna;
+    Integer linha;
+    Integer coluna;
 }

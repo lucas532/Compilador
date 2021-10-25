@@ -15,6 +15,6 @@ public class Main {
         Lexer l = new Lexer("/ProgramaTeste.txt");
         Map<Integer, Token> tokens = l.lex();
         logger.info("Tokens: {}", tokens.size());
-        tokens.forEach((conteudo, token) -> logger.info(token.toString()));
+        tokens.forEach((id, token) -> logger.info(token.toString()));
     }
 }

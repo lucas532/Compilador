@@ -11,10 +11,10 @@ import java.util.Objects;
 
 public class Lexer {
     final PushbackReader reader;
-    char ch;
-    int linha = 1;
-    int colunaAnterior = 1;
-    int coluna = 1;
+    Character ch;
+    Integer linha = 1;
+    Integer colunaAnterior = 1;
+    Integer coluna = 1;
     boolean eof = false;
 
     public Lexer(String nomeArquivo) {
@@ -99,50 +99,51 @@ public class Lexer {
     }
 
     public Token buscarToken() throws IOException {
-        StringBuilder lexema = new StringBuilder();
+        String lexema;
+        int colLex;
         lerCaractere();
 
         while (Character.isWhitespace(ch)) {
             lerCaractere();
         }
-
-        if (!Character.isLetterOrDigit(ch) && !Character.isWhitespace(ch)) {
-            String operador = lerOperador();
-            int col = coluna - operador.length();
-            return switch (operador) {
-                case ":=" -> new Token(Tipo.SATRIBUICAO, operador, linha, col);
-                case ":" -> new Token(Tipo.STIPO, operador, linha, col);
-                case "+" -> new Token(Tipo.SMAIS, operador, linha, col);
-                case "-" -> new Token(Tipo.SMENOS, operador, linha, col);
-                case "*" -> new Token(Tipo.SMULTIPLICACAO, operador, linha, col);
-                case "/" -> new Token(Tipo.SDIVISAO, operador, linha, col);
-                case ";" -> new Token(Tipo.SPONTO_E_VIRGULA, operador, linha, col);
-                case "." -> new Token(Tipo.SPONTO, operador, linha, col);
-                case "," -> new Token(Tipo.SVIRGULA, operador, linha, col);
-                case "(" -> new Token(Tipo.SABRE_PARENTESIS, operador, linha, col);
-                case ")" -> new Token(Tipo.SFECHA_PARENTESIS, operador, linha, col);
-                case "{" -> new Token(Tipo.SCOMENTARIO, lerComentario(), linha, col);
-                default -> new Token(Tipo.SERRO, operador, linha, col);
+        
+        if (!Character.isLetterOrDigit(ch)) {
+            lexema = lerOperador();
+            colLex = coluna - lexema.length();
+            return switch (lexema) {
+                case ":=" -> new Token(Tipo.SATRIBUICAO, lexema, linha, colLex);
+                case ":" -> new Token(Tipo.STIPO, lexema, linha, colLex);
+                case "+" -> new Token(Tipo.SMAIS, lexema, linha, colLex);
+                case "-" -> new Token(Tipo.SMENOS, lexema, linha, colLex);
+                case "*" -> new Token(Tipo.SMULTIPLICACAO, lexema, linha, colLex);
+                case "/" -> new Token(Tipo.SDIVISAO, lexema, linha, colLex);
+                case ";" -> new Token(Tipo.SPONTO_E_VIRGULA, lexema, linha, colLex);
+                case "." -> new Token(Tipo.SPONTO, lexema, linha, colLex);
+                case "," -> new Token(Tipo.SVIRGULA, lexema, linha, colLex);
+                case "(" -> new Token(Tipo.SABRE_PARENTESIS, lexema, linha, colLex);
+                case ")" -> new Token(Tipo.SFECHA_PARENTESIS, lexema, linha, colLex);
+                case "{" -> new Token(Tipo.SCOMENTARIO, lerComentario(), linha, colLex);
+                default -> new Token(Tipo.SERRO, lexema, linha, colLex);
             };
         } else if (Character.isDigit(ch)) {
-            String numero = lerNumero();
-            int col = coluna - numero.length();
-            return new Token(Tipo.SNUMERO, numero, linha, col);
+            lexema = lerNumero();
+            colLex = coluna - lexema.length();
+            return new Token(Tipo.SNUMERO, lexema, linha, colLex);
         } else if (Character.isLetter(ch)) {
-            String palavra = lerPalavra();
-            int col = coluna - palavra.length();
-            return switch (palavra) {
-                case "programa" -> new Token(Tipo.SPROGRAMA, palavra, linha, col);
-                case "inteiro" -> new Token(Tipo.SINTEIRO, palavra, linha, col);
-                case "inicio" -> new Token(Tipo.SINICIO, palavra, linha, col);
-                case "fim" -> new Token(Tipo.SFIM, palavra, linha, col);
-                case "var" -> new Token(Tipo.SVAR, palavra, linha, col);
-                case "escreva" -> new Token(Tipo.SESCREVA, palavra, linha, col);
-                default -> new Token(Tipo.SIDENTIFICADOR, palavra, linha, col);
+            lexema = lerPalavra();
+            colLex = coluna - lexema.length();
+            return switch (lexema) {
+                case "programa" -> new Token(Tipo.SPROGRAMA, lexema, linha, colLex);
+                case "inteiro" -> new Token(Tipo.SINTEIRO, lexema, linha, colLex);
+                case "inicio" -> new Token(Tipo.SINICIO, lexema, linha, colLex);
+                case "fim" -> new Token(Tipo.SFIM, lexema, linha, colLex);
+                case "var" -> new Token(Tipo.SVAR, lexema, linha, colLex);
+                case "escreva" -> new Token(Tipo.SESCREVA, lexema, linha, colLex);
+                default -> new Token(Tipo.SIDENTIFICADOR, lexema, linha, colLex);
             };
         } else {
-            lexema.append(ch);
-            return new Token(Tipo.SERRO, lexema.toString(), linha, coluna);
+            lexema = String.valueOf(ch);
+            return new Token(Tipo.SERRO, lexema, linha, coluna);
         }
     }
 
