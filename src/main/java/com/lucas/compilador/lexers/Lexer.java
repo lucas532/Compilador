@@ -86,18 +86,6 @@ public class Lexer {
         return operador.toString();
     }
 
-    public String lerComentario() throws IOException {
-        StringBuilder comentario = new StringBuilder();
-        while (ch != '}' && !eof) {
-            colunaAnterior = coluna;
-            comentario.append(ch);
-            lerCaractere();
-        }
-
-        comentario.append(ch);
-        return comentario.toString();
-    }
-
     public Token buscarToken() throws IOException {
         String lexema;
         int colLex;
@@ -122,7 +110,8 @@ public class Lexer {
                 case "," -> new Token(Tipo.SVIRGULA, lexema, linha, colLex);
                 case "(" -> new Token(Tipo.SABRE_PARENTESIS, lexema, linha, colLex);
                 case ")" -> new Token(Tipo.SFECHA_PARENTESIS, lexema, linha, colLex);
-                case "{" -> new Token(Tipo.SCOMENTARIO, lerComentario(), linha, colLex);
+                case "{" -> new Token(Tipo.SABRE_COMENTARIO, lexema, linha, colLex);
+                case "}" -> new Token(Tipo.SFECHA_COMENTARIO, lexema, linha, colLex);
                 default -> new Token(Tipo.SERRO, lexema, linha, colLex);
             };
         } else if (Character.isDigit(ch)) {
