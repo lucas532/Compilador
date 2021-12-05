@@ -1,12 +1,10 @@
 package com.lucas.compilador.lexers;
 
-import com.lucas.compilador.objetos.TabelaSimbolos;
 import com.lucas.compilador.objetos.Tipo;
 import com.lucas.compilador.objetos.Token;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.Map;
 import java.util.Objects;
 
 public class Lexer {
@@ -48,7 +46,7 @@ public class Lexer {
 
     public String lerPalavra() throws IOException {
         StringBuilder palavra = new StringBuilder();
-        while (Character.isLetter(ch) || ch == '_') {
+        while (Character.isLetterOrDigit(ch) || ch == '_') {
             colunaAnterior = coluna;
             palavra.append(ch);
             lerCaractere();
@@ -93,8 +91,11 @@ public class Lexer {
 
         while (Character.isWhitespace(ch)) {
             lerCaractere();
+            if (eof) {
+                return null;
+            }
         }
-        
+
         if (!Character.isLetterOrDigit(ch)) {
             lexema = lerOperador();
             colLex = coluna - lexema.length();
@@ -123,6 +124,7 @@ public class Lexer {
             colLex = coluna - lexema.length();
             return switch (lexema) {
                 case "programa" -> new Token(Tipo.SPROGRAMA, lexema, linha, colLex);
+                case "booleano" -> new Token(Tipo.SBOOLEANO, lexema, linha, colLex);
                 case "inteiro" -> new Token(Tipo.SINTEIRO, lexema, linha, colLex);
                 case "inicio" -> new Token(Tipo.SINICIO, lexema, linha, colLex);
                 case "fim" -> new Token(Tipo.SFIM, lexema, linha, colLex);
@@ -134,20 +136,5 @@ public class Lexer {
             lexema = String.valueOf(ch);
             return new Token(Tipo.SERRO, lexema, linha, coluna);
         }
-    }
-
-    public Map<Integer, Token> lex() throws IOException {
-        TabelaSimbolos ts = new TabelaSimbolos();
-        Token t;
-        Integer i = 0;
-
-        do {
-            t = buscarToken();
-            ts.adicionarToken(i, t);
-            i++;
-        }
-        while (t.getTipo() != Tipo.SERRO && t.getTipo() != Tipo.SFIM && !eof);
-
-        return ts.listarTokens();
     }
 }
