@@ -6,7 +6,7 @@ x: inteiro;
 
 inicio
 a := 7;
-b := 5;
-}x := (a - b);
-    escreva x;
+b := ;
+x := (a - b);
+    escreva(x);
 fim.

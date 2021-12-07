@@ -25,18 +25,6 @@ public class Parser {
     }
 
     public Map<Integer, Token> analise() throws IOException {
-//        Integer i = 0;
-//
-//        do {
-//            buscarProximoToken();
-//            if (tokenAtual == null) {
-//                break;
-//            }
-//            ts.adicionarToken(i, tokenAtual);
-//            i++;
-//        }
-//        while (tokenAtual.getTipo() != Tipo.SERRO);
-
         checkProgram();
         return ts.listarTokens();
     }
@@ -61,10 +49,10 @@ public class Parser {
                 checkStatementEnd();
                 checkBlock();
             } else {
-                throw new IOException("identificador esperado");
+                throw new IOException(String.format("linha:%d, coluna:%d, identificador esperado", tokenAtual.getLinha(), tokenAtual.getColuna()));
             }
         } else {
-            throw new IOException("declaração de programa esperado");
+            throw new IOException(String.format("linha:%d, coluna:%d, declaração de programa esperado", tokenAtual.getLinha(), tokenAtual.getColuna()));
         }
     }
 
@@ -88,15 +76,14 @@ public class Parser {
                         checkType();
                         checkStatementEnd();
                     } else if (tokenAtual.getTipo() != Tipo.SVIRGULA) {
-                        throw new IOException(", ou : esperado");
+                        throw new IOException(String.format("linha:%d, coluna:%d, , ou : esperado", tokenAtual.getLinha(), tokenAtual.getColuna()));
                     } else {
                         buscarProximoToken();
                     }
                 } else {
-                    throw new IOException("identificador esperado");
+                    throw new IOException(String.format("linha:%d, coluna:%d, identificador esperado", tokenAtual.getLinha(), tokenAtual.getColuna()));
                 }
             }
-
         }
     }
 
@@ -106,14 +93,14 @@ public class Parser {
         } else if (tokenAtual.getTipo() == Tipo.SBOOLEANO) {
             buscarProximoToken();
         } else
-            throw new IOException("tipo esperado");
+            throw new IOException(String.format("linha:%d, coluna:%d, tipo esperado", tokenAtual.getLinha(), tokenAtual.getColuna()));
     }
 
     private void checkStatementEnd() throws IOException {
         if (tokenAtual.getTipo() == Tipo.SPONTO_E_VIRGULA) {
             buscarProximoToken();
         } else {
-            throw new IOException("; esperado");
+            throw new IOException(String.format("linha:%d, coluna:%d, ; esperado", tokenAtual.getLinha(), tokenAtual.getColuna()));
         }
     }
 
@@ -124,13 +111,13 @@ public class Parser {
             if (tokenAtual.getTipo() == Tipo.SFIM) {
                 buscarProximoToken();
                 if (tokenAtual.getTipo() != Tipo.SPONTO) {
-                    throw new IOException(". esperado");
+                    throw new IOException(String.format("linha:%d, coluna:%d, . esperado", tokenAtual.getLinha(), tokenAtual.getColuna()));
                 }
             } else {
-                throw new IOException("fim esperado");
+                throw new IOException(String.format("linha:%d, coluna:%d, fim esperado", tokenAtual.getLinha(), tokenAtual.getColuna()));
             }
         } else {
-            throw new IOException("inicio esperado");
+            throw new IOException(String.format("linha:%d, coluna:%d, inicio esperado", tokenAtual.getLinha(), tokenAtual.getColuna()));
         }
     }
 
@@ -138,6 +125,7 @@ public class Parser {
         while (tokenAtual.getTipo() != Tipo.SFIM) {
             checkAttribution();
             checkWrite();
+            checkStatementEnd();
         }
         if (tokenAtual.getTipo() == Tipo.SPONTO_E_VIRGULA) {
             buscarProximoToken();
@@ -150,12 +138,9 @@ public class Parser {
             if (tokenAtual.getTipo() == Tipo.SATRIBUICAO) {
                 buscarProximoToken();
                 checkExpression();
-                checkStatementEnd();
             } else {
-                throw new IOException(":= esperado");
+                throw new IOException(String.format("linha:%d, coluna:%d, := esperado", tokenAtual.getLinha(), tokenAtual.getColuna()));
             }
-        } else {
-            throw new IOException("identificador esperado");
         }
     }
 
@@ -164,56 +149,47 @@ public class Parser {
             buscarProximoToken();
             if (tokenAtual.getTipo() == Tipo.SABRE_PARENTESIS) {
                 buscarProximoToken();
-                if (tokenAtual.getTipo() == Tipo.SIDENTIFICADOR) {
+                if (tokenAtual.getTipo() == Tipo.SIDENTIFICADOR || tokenAtual.getTipo() == Tipo.SNUMERO) {
                     buscarProximoToken();
                     if (tokenAtual.getTipo() == Tipo.SFECHA_PARENTESIS)
                         buscarProximoToken();
                     else {
-                        throw new IOException("Erro sintático");
+                        throw new IOException(String.format("linha:%d, coluna:%d, ) esperado", tokenAtual.getLinha(), tokenAtual.getColuna()));
                     }
                 } else {
-                    throw new IOException("Erro sintático");
+                    throw new IOException(String.format("linha:%d, coluna:%d, identificador ou texto esperado", tokenAtual.getLinha(), tokenAtual.getColuna()));
                 }
             } else {
-                throw new IOException("Erro sintático");
+                throw new IOException(String.format("linha:%d, coluna:%d, ( esperado", tokenAtual.getLinha(), tokenAtual.getColuna()));
             }
         }
     }
 
-    //Lógica deste método está errada -CONSERTAR
     private void checkExpression() throws IOException {
-        if (tokenAtual.getTipo() == Tipo.SABRE_PARENTESIS) {
-            buscarProximoToken();
-        }
         checkFactor();
-        checkOperator();
-        if (tokenAtual.getTipo() == Tipo.SFECHA_PARENTESIS) {
-            buscarProximoToken();
+        if (tokenAtual.getTipo() != Tipo.SPONTO_E_VIRGULA) {
+            checkOperator();
         }
-//        if (tokenAtual.getTipo() == Tipo.SMAIS || tokenAtual.getTipo() == Tipo.SMENOS) {
-//            buscarProximoToken();
-//            checkTerm();
-//        } else {
-//            throw new IOException("Erro sintático");
-//        }
     }
 
     private void checkOperator() throws IOException {
-        List<Tipo> tiposPermitidos = List.of(Tipo.SMAIS, Tipo.SMENOS, Tipo.SMULTIPLICACAO, Tipo.SDIVISAO);
+        List<Tipo> tiposPermitidos = List.of(Tipo.SMAIS, Tipo.SMENOS, Tipo.SMULTIPLICACAO, Tipo.SDIVISAO, Tipo.SABRE_PARENTESIS, Tipo.SFECHA_PARENTESIS);
+        if (!tiposPermitidos.contains(tokenAtual.getTipo())) {
+            throw new IOException(String.format("linha:%d, coluna:%d, operador esperado", tokenAtual.getLinha(), tokenAtual.getColuna()));
+        }
         while (tiposPermitidos.contains(tokenAtual.getTipo())) {
             buscarProximoToken();
             checkFactor();
         }
-        if (tokenAtual.getTipo() != Tipo.SPONTO_E_VIRGULA && tokenAtual.getTipo() != Tipo.SFECHA_PARENTESIS) {
-            throw new IOException("operador matemático esperado");
-        }
     }
 
     private void checkFactor() throws IOException {
-        List<Tipo> tiposPermitidos = List.of(Tipo.SIDENTIFICADOR, Tipo.SNUMERO, Tipo.SBOOLEANO);
+        List<Tipo> tiposPermitidos = List.of(Tipo.SIDENTIFICADOR, Tipo.SNUMERO, Tipo.SBOOLEANO, Tipo.SABRE_PARENTESIS, Tipo.SFECHA_PARENTESIS);
         if (!tiposPermitidos.contains(tokenAtual.getTipo())) {
-            throw new IOException("identificador, numero, ou booleano esperado");
+            throw new IOException(String.format("linha:%d, coluna:%d, identificador, numero ou booleano esperado", tokenAtual.getLinha(), tokenAtual.getColuna()));
         }
-        buscarProximoToken();
+        while (tiposPermitidos.contains(tokenAtual.getTipo())) {
+            buscarProximoToken();
+        }
     }
 }

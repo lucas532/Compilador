@@ -1,13 +1,6 @@
-programa teste_correto;
-
-var
-a, b, c: inteiro;
-
-{ Comentário teste }
-
+programa teste ;
+var x: inteiro;
 inicio
-a := 5;
-b := 10;
-c := (a + b);
-    escreva c;
+  x := 3 + 1336;
+  escreva(x);
 fim.

@@ -12,7 +12,7 @@ public class Main {
     private static final Logger logger = LogManager.getLogger(Main.class);
 
     public static void main(String[] args) {
-        Parser p = new Parser("/ProgramaTeste.txt");
+        Parser p = new Parser("/ProgramaTeste3.txt");
         Map<Integer, Token> tokens = null;
         try {
             tokens = p.analise();
