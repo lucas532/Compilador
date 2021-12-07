@@ -29,7 +29,7 @@ private void buscarProximoToken()throws IOException {
 Por fim, o método `main`, que realiza a chamada do parser passando o nome do arquivo a ser analisado.
 
 ```Java
-public static void main(String[]args){
+public static void main(String[]args) {
     Parser p=new Parser("/ProgramaTeste.txt");
     Map<Integer, Token> tokens;
     try {
@@ -55,3 +55,6 @@ Basta abrir a aplicação em sua IDE de preferência, buildar o arquivo [build.g
 método [main](src/main/java/com/lucas/compilador/Main.java).
 
 ## Considerações
+
+Infelizmente, não conseguimos implementar a etapa de geração de código intermediário, embora tenhamos compreendido a
+teoria, não conseguimos realizar na prática, no entanto, o restante do solicitado foi implementado.
