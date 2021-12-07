@@ -8,7 +8,7 @@ r: inteiro;
 
 inicio
 x := 3;
-y := 5;
+y := 5 + 2;
 r := (x + 7) * y;
     escreva r;
 fim.

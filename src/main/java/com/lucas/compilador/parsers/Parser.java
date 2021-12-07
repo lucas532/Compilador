@@ -6,6 +6,7 @@ import com.lucas.compilador.objetos.Tipo;
 import com.lucas.compilador.objetos.Token;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 public class Parser {
@@ -19,7 +20,7 @@ public class Parser {
         lexer = new Lexer(nomeArquivo);
     }
 
-    public void buscarProximoToken() throws IOException {
+    private void buscarProximoToken() throws IOException {
         tokenAtual = lexer.buscarToken();
     }
 
@@ -40,7 +41,7 @@ public class Parser {
         return ts.listarTokens();
     }
 
-    public void checkComment() throws IOException {
+    private void checkComment() throws IOException {
         if (tokenAtual.getTipo() == Tipo.SABRE_COMENTARIO) {
             while (tokenAtual.getTipo() != Tipo.SFECHA_COMENTARIO) {
                 buscarProximoToken();
@@ -49,7 +50,7 @@ public class Parser {
         }
     }
 
-    public void checkProgram() throws IOException {
+    private void checkProgram() throws IOException {
         buscarProximoToken();
         if (tokenAtual.getTipo() == Tipo.SPROGRAMA) {
             buscarProximoToken();
@@ -60,19 +61,19 @@ public class Parser {
                 checkStatementEnd();
                 checkBlock();
             } else {
-                throw new IOException("Identificador esperado");
+                throw new IOException("identificador esperado");
             }
         } else {
-            throw new IOException("Declaração de programa esperado");
+            throw new IOException("declaração de programa esperado");
         }
     }
 
-    public void checkBlock() throws IOException {
+    private void checkBlock() throws IOException {
         checkVarDeclaration();
         checkCommandsBlock();
     }
 
-    public void checkVarDeclaration() throws IOException {
+    private void checkVarDeclaration() throws IOException {
         if (tokenAtual.getTipo() == Tipo.SVAR) {
             buscarProximoToken();
             while (true) {
@@ -92,20 +93,20 @@ public class Parser {
                         buscarProximoToken();
                     }
                 } else {
-                    throw new IOException("Identificador esperado");
+                    throw new IOException("identificador esperado");
                 }
             }
 
         }
     }
 
-    public void checkType() throws IOException {
+    private void checkType() throws IOException {
         if (tokenAtual.getTipo() == Tipo.SINTEIRO) {
             buscarProximoToken();
         } else if (tokenAtual.getTipo() == Tipo.SBOOLEANO) {
             buscarProximoToken();
         } else
-            throw new IOException("Tipo esperado");
+            throw new IOException("tipo esperado");
     }
 
     private void checkStatementEnd() throws IOException {
@@ -116,7 +117,7 @@ public class Parser {
         }
     }
 
-    public void checkCommandsBlock() throws IOException {
+    private void checkCommandsBlock() throws IOException {
         if (tokenAtual.getTipo() == Tipo.SINICIO) {
             buscarProximoToken();
             checkCommands();
@@ -133,49 +134,32 @@ public class Parser {
         }
     }
 
-    public void checkCommands() throws IOException {
+    private void checkCommands() throws IOException {
         while (tokenAtual.getTipo() != Tipo.SFIM) {
             checkAttribution();
-            if (tokenAtual.getTipo() == Tipo.SPONTO_E_VIRGULA) {
-                buscarProximoToken();
-                checkCommands();
-            } else {
-                throw new IOException("Erro sintático");
-            }
-
             checkWrite();
-            if (tokenAtual.getTipo() == Tipo.SPONTO_E_VIRGULA) {
-                buscarProximoToken();
-                checkCommands();
-            } else {
-                throw new IOException("Erro sintático");
-            }
-
-            if (tokenAtual.getTipo() == Tipo.SPONTO_E_VIRGULA) {
-                buscarProximoToken();
-                checkCommands();
-            } else {
-                throw new IOException("Erro sintático");
-            }
         }
         if (tokenAtual.getTipo() == Tipo.SPONTO_E_VIRGULA) {
             buscarProximoToken();
         }
     }
 
-    public void checkAttribution() throws IOException {
+    private void checkAttribution() throws IOException {
         if (tokenAtual.getTipo() == Tipo.SIDENTIFICADOR) {
             buscarProximoToken();
             if (tokenAtual.getTipo() == Tipo.SATRIBUICAO) {
                 buscarProximoToken();
                 checkExpression();
+                checkStatementEnd();
             } else {
                 throw new IOException(":= esperado");
             }
+        } else {
+            throw new IOException("identificador esperado");
         }
     }
 
-    public void checkWrite() throws IOException {
+    private void checkWrite() throws IOException {
         if (tokenAtual.getTipo() == Tipo.SESCREVA) {
             buscarProximoToken();
             if (tokenAtual.getTipo() == Tipo.SABRE_PARENTESIS) {
@@ -196,46 +180,40 @@ public class Parser {
         }
     }
 
-    public void checkExpression() throws IOException {
-        checkSimpleExpression();
-        checkTerm();
-        checkFactor();
-    }
-
     //Lógica deste método está errada -CONSERTAR
-    private void checkSimpleExpression() throws IOException {
-        if (tokenAtual.getTipo() == Tipo.SIDENTIFICADOR || tokenAtual.getTipo() == Tipo.SNUMERO) {
+    private void checkExpression() throws IOException {
+        if (tokenAtual.getTipo() == Tipo.SABRE_PARENTESIS) {
             buscarProximoToken();
-            checkTerm();
-            if (tokenAtual.getTipo() == Tipo.SMAIS || tokenAtual.getTipo() == Tipo.SMENOS) {
-                buscarProximoToken();
-                checkTerm();
-            } else {
-                throw new IOException("Erro sintático");
-            }
-        } else {
-            buscarProximoToken();
-            checkTerm();
-            if (tokenAtual.getTipo() == Tipo.SMAIS || tokenAtual.getTipo() == Tipo.SMENOS) {
-                buscarProximoToken();
-                checkTerm();
-            } else {
-                throw new IOException("Erro sintático");
-            }
         }
+        checkFactor();
+        checkOperator();
+        if (tokenAtual.getTipo() == Tipo.SFECHA_PARENTESIS) {
+            buscarProximoToken();
+        }
+//        if (tokenAtual.getTipo() == Tipo.SMAIS || tokenAtual.getTipo() == Tipo.SMENOS) {
+//            buscarProximoToken();
+//            checkTerm();
+//        } else {
+//            throw new IOException("Erro sintático");
+//        }
     }
 
-    private void checkTerm() throws IOException {
-        checkFactor();
-        while (tokenAtual.getTipo() == Tipo.SMULTIPLICACAO || tokenAtual.getTipo() == Tipo.SDIVISAO) {
+    private void checkOperator() throws IOException {
+        List<Tipo> tiposPermitidos = List.of(Tipo.SMAIS, Tipo.SMENOS, Tipo.SMULTIPLICACAO, Tipo.SDIVISAO);
+        while (tiposPermitidos.contains(tokenAtual.getTipo())) {
             buscarProximoToken();
             checkFactor();
+        }
+        if (tokenAtual.getTipo() != Tipo.SPONTO_E_VIRGULA && tokenAtual.getTipo() != Tipo.SFECHA_PARENTESIS) {
+            throw new IOException("operador matemático esperado");
         }
     }
 
     private void checkFactor() throws IOException {
-        if (tokenAtual.getTipo() == Tipo.SNUMERO || tokenAtual.getTipo() == Tipo.SVAR || tokenAtual.getTipo() == Tipo.SBOOLEANO) {
-            buscarProximoToken();
+        List<Tipo> tiposPermitidos = List.of(Tipo.SIDENTIFICADOR, Tipo.SNUMERO, Tipo.SBOOLEANO);
+        if (!tiposPermitidos.contains(tokenAtual.getTipo())) {
+            throw new IOException("identificador, numero, ou booleano esperado");
         }
+        buscarProximoToken();
     }
 }
