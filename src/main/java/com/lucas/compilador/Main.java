@@ -12,8 +12,8 @@ public class Main {
     private static final Logger logger = LogManager.getLogger(Main.class);
 
     public static void main(String[] args) {
-        Parser p = new Parser("/ProgramaTeste3.txt");
-        Map<Integer, Token> tokens = null;
+        Parser p = new Parser("/ProgramaTeste.txt");
+        Map<Integer, Token> tokens;
         try {
             tokens = p.analise();
             logger.info("Tokens: {}", tokens.size());

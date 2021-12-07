@@ -20,16 +20,21 @@ public class Parser {
         lexer = new Lexer(nomeArquivo);
     }
 
+    private void inserirTokenNaTabela() {
+        ts.adicionarToken(i, tokenAtual);
+        i++;
+    }
+
     private void buscarProximoToken() throws IOException {
         tokenAtual = lexer.buscarToken();
     }
 
     public Map<Integer, Token> analise() throws IOException {
-        checkProgram();
+        checarPrograma();
         return ts.listarTokens();
     }
 
-    private void checkComment() throws IOException {
+    private void checarComentario() throws IOException {
         if (tokenAtual.getTipo() == Tipo.SABRE_COMENTARIO) {
             while (tokenAtual.getTipo() != Tipo.SFECHA_COMENTARIO) {
                 buscarProximoToken();
@@ -38,16 +43,15 @@ public class Parser {
         }
     }
 
-    private void checkProgram() throws IOException {
+    private void checarPrograma() throws IOException {
         buscarProximoToken();
         if (tokenAtual.getTipo() == Tipo.SPROGRAMA) {
             buscarProximoToken();
             if (tokenAtual.getTipo() == Tipo.SIDENTIFICADOR) {
-                ts.adicionarToken(i, tokenAtual);
-                i++;
+                inserirTokenNaTabela();
                 buscarProximoToken();
-                checkStatementEnd();
-                checkBlock();
+                checarFimComando();
+                checarBloco();
             } else {
                 throw new IOException(String.format("linha:%d, coluna:%d, identificador esperado", tokenAtual.getLinha(), tokenAtual.getColuna()));
             }
@@ -56,25 +60,26 @@ public class Parser {
         }
     }
 
-    private void checkBlock() throws IOException {
-        checkVarDeclaration();
-        checkCommandsBlock();
+    private void checarBloco() throws IOException {
+        checarDeclaracaoVar();
+        checarBlocoComandos();
     }
 
-    private void checkVarDeclaration() throws IOException {
+    private void checarDeclaracaoVar() throws IOException {
         if (tokenAtual.getTipo() == Tipo.SVAR) {
             buscarProximoToken();
             while (true) {
-                checkComment();
+                checarComentario();
                 if (tokenAtual.getTipo() == Tipo.SINICIO) {
                     break;
                 }
                 if (tokenAtual.getTipo() == Tipo.SIDENTIFICADOR) {
+                    inserirTokenNaTabela();
                     buscarProximoToken();
                     if (tokenAtual.getTipo() == Tipo.STIPO) {
                         buscarProximoToken();
-                        checkType();
-                        checkStatementEnd();
+                        checarTipo();
+                        checarFimComando();
                     } else if (tokenAtual.getTipo() != Tipo.SVIRGULA) {
                         throw new IOException(String.format("linha:%d, coluna:%d, , ou : esperado", tokenAtual.getLinha(), tokenAtual.getColuna()));
                     } else {
@@ -87,7 +92,7 @@ public class Parser {
         }
     }
 
-    private void checkType() throws IOException {
+    private void checarTipo() throws IOException {
         if (tokenAtual.getTipo() == Tipo.SINTEIRO) {
             buscarProximoToken();
         } else if (tokenAtual.getTipo() == Tipo.SBOOLEANO) {
@@ -96,7 +101,7 @@ public class Parser {
             throw new IOException(String.format("linha:%d, coluna:%d, tipo esperado", tokenAtual.getLinha(), tokenAtual.getColuna()));
     }
 
-    private void checkStatementEnd() throws IOException {
+    private void checarFimComando() throws IOException {
         if (tokenAtual.getTipo() == Tipo.SPONTO_E_VIRGULA) {
             buscarProximoToken();
         } else {
@@ -104,10 +109,10 @@ public class Parser {
         }
     }
 
-    private void checkCommandsBlock() throws IOException {
+    private void checarBlocoComandos() throws IOException {
         if (tokenAtual.getTipo() == Tipo.SINICIO) {
             buscarProximoToken();
-            checkCommands();
+            checarComandos();
             if (tokenAtual.getTipo() == Tipo.SFIM) {
                 buscarProximoToken();
                 if (tokenAtual.getTipo() != Tipo.SPONTO) {
@@ -121,31 +126,32 @@ public class Parser {
         }
     }
 
-    private void checkCommands() throws IOException {
+    private void checarComandos() throws IOException {
         while (tokenAtual.getTipo() != Tipo.SFIM) {
-            checkAttribution();
-            checkWrite();
-            checkStatementEnd();
+            checarAtribuicao();
+            checarEscreva();
+            checarFimComando();
         }
         if (tokenAtual.getTipo() == Tipo.SPONTO_E_VIRGULA) {
             buscarProximoToken();
         }
     }
 
-    private void checkAttribution() throws IOException {
+    private void checarAtribuicao() throws IOException {
         if (tokenAtual.getTipo() == Tipo.SIDENTIFICADOR) {
             buscarProximoToken();
             if (tokenAtual.getTipo() == Tipo.SATRIBUICAO) {
                 buscarProximoToken();
-                checkExpression();
+                checarExpressao();
             } else {
                 throw new IOException(String.format("linha:%d, coluna:%d, := esperado", tokenAtual.getLinha(), tokenAtual.getColuna()));
             }
         }
     }
 
-    private void checkWrite() throws IOException {
+    private void checarEscreva() throws IOException {
         if (tokenAtual.getTipo() == Tipo.SESCREVA) {
+            inserirTokenNaTabela();
             buscarProximoToken();
             if (tokenAtual.getTipo() == Tipo.SABRE_PARENTESIS) {
                 buscarProximoToken();
@@ -165,25 +171,25 @@ public class Parser {
         }
     }
 
-    private void checkExpression() throws IOException {
-        checkFactor();
+    private void checarExpressao() throws IOException {
+        checarFator();
         if (tokenAtual.getTipo() != Tipo.SPONTO_E_VIRGULA) {
-            checkOperator();
+            checarTermo();
         }
     }
 
-    private void checkOperator() throws IOException {
+    private void checarTermo() throws IOException {
         List<Tipo> tiposPermitidos = List.of(Tipo.SMAIS, Tipo.SMENOS, Tipo.SMULTIPLICACAO, Tipo.SDIVISAO, Tipo.SABRE_PARENTESIS, Tipo.SFECHA_PARENTESIS);
         if (!tiposPermitidos.contains(tokenAtual.getTipo())) {
             throw new IOException(String.format("linha:%d, coluna:%d, operador esperado", tokenAtual.getLinha(), tokenAtual.getColuna()));
         }
         while (tiposPermitidos.contains(tokenAtual.getTipo())) {
             buscarProximoToken();
-            checkFactor();
+            checarFator();
         }
     }
 
-    private void checkFactor() throws IOException {
+    private void checarFator() throws IOException {
         List<Tipo> tiposPermitidos = List.of(Tipo.SIDENTIFICADOR, Tipo.SNUMERO, Tipo.SBOOLEANO, Tipo.SABRE_PARENTESIS, Tipo.SFECHA_PARENTESIS);
         if (!tiposPermitidos.contains(tokenAtual.getTipo())) {
             throw new IOException(String.format("linha:%d, coluna:%d, identificador, numero ou booleano esperado", tokenAtual.getLinha(), tokenAtual.getColuna()));
